@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>نظام الصيانة الذكي - جامعة الريادة (V11.5 - Enhanced)</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app-wrapper">
+    <audio id="sound-notify-req" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+    <audio id="sound-notify-post" src="https://assets.mixkit.co/active_storage/sfx/2346/2346-preview.mp3" preload="auto"></audio>
+
+    <div id="loader">
+        <i class="fa-solid fa-circle-notch fa-spin fa-3x" style="color:var(--primary);"></i>
+        <h2 style="margin-top:20px; color:var(--primary-dark); font-size:18px; font-weight:800;">نظام الصيانة الذكي</h2>
+        <p style="color:var(--text-muted); font-size:14px; margin:0;">جامعة الريادة - V11.5 Enhanced</p>
+    </div>
+
+    <div id="auth-screen" class="hidden" style="min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:25px;">
+        <div class="glass-card" style="text-align:center; padding: 40px 25px;">
+            <img src="https://a.top4top.io/p_36115ao3o1.jpg" class="auth-logo-modern">
+            <h2 style="margin:0 0 5px; font-weight:900; font-size: 22px; color:var(--primary-dark);">نظام الصيانة الذكي</h2>
+            <p style="color:var(--text-muted); font-size:13px; margin-bottom:35px; line-height:1.6;">جامعة الريادة للعلوم والتكنولوجيا</p>
+
+            <div id="reg-fields" class="hidden">
+                <p class="auth-section-label">اختر النوع:</p>
+                <div class="auth-grid" style="grid-template-columns: 1fr 1fr;">
+                    <label><input type="radio" name="auth-gender" value="male" class="auth-card-input" checked><div class="auth-card"><i class="fa-solid fa-person"></i><span>ذكر</span></div></label>
+                    <label><input type="radio" name="auth-gender" value="female" class="auth-card-input"><div class="auth-card"><i class="fa-solid fa-person-dress"></i><span>أنثى</span></div></label>
+                </div>
+                <div class="input-group" style="margin-top:15px;"><input type="text" id="reg-name" placeholder="الاسم الكامل"></div>
+                <div class="input-group"><input type="tel" id="reg-phone" placeholder="01xxxxxxxxx"></div>
+                
+                <p class="auth-section-label">الوظيفة:</p>
+                <div class="auth-grid" style="grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                    <label><input type="radio" name="auth-role" value="employee" class="auth-card-input" checked><div class="auth-card"><i class="fa-solid fa-user-pen"></i><span style="font-size:10px;">موظف</span></div></label>
+                    <label><input type="radio" name="auth-role" value="supervisor" class="auth-card-input"><div class="auth-card"><i class="fa-solid fa-user-tie"></i><span style="font-size:10px;">مشرف</span></div></label>
+                    <label><input type="radio" name="auth-role" value="engineer" class="auth-card-input"><div class="auth-card"><i class="fa-solid fa-helmet-safety"></i><span style="font-size:10px;">مهندس</span></div></label>
+                    <label><input type="radio" name="auth-role" value="technician" class="auth-card-input"><div class="auth-card"><i class="fa-solid fa-screwdriver-wrench"></i><span style="font-size:10px;">فني</span></div></label>
+                    <label><input type="radio" name="auth-role" value="manager" class="auth-card-input"><div class="auth-card"><i class="fa-solid fa-user-shield"></i><span style="font-size:10px;">مدير</span></div></label>
+                </div>
+                <div class="input-group" style="margin-top:15px;"><input type="text" id="reg-job" placeholder="المسمى الوظيفي"></div>
+                <div class="input-group"><input type="text" id="reg-loc" placeholder="مقر العمل"></div>
+            </div>
+
+            <div class="input-group"><input type="email" id="email" placeholder="البريد الإلكتروني الجامعي"></div>
+            <div class="input-group"><input type="password" id="password" placeholder="كلمة المرور"></div>
+            <div id="confirm-pass-field" class="hidden input-group"><input type="password" id="confirm-password" placeholder="تأكيد كلمة المرور"></div>
+            
+            <button onclick="handleAuth()" id="auth-btn" class="btn-main" style="margin-top:25px;">تسجيل الدخول</button>
+            <div onclick="toggleAuth()" style="margin-top:25px; font-size:13px; cursor:pointer; padding:10px; color:var(--text-muted);">
+                <span id="auth-switch-text">ليس لديك حساب؟ <b style="color:var(--primary)">إنشاء حساب جديد</b></span>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" class="hidden">
+        <div class="main-banner">
+            <div class="header-top">
+                <div class="user-avatar-container" onclick="nav('profile', document.querySelector('.nav-item:nth-child(5)'))">
+                    <img id="banner-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png">
+                    <div id="banner-frame" class="frame-overlay"></div>
+                </div>
+                <div class="bell-btn" onclick="toast('لا توجد إشعارات جديدة')">
+                    <i class="fa-regular fa-bell"></i>
+                    <div class="bell-badge"></div>
+                </div>
+            </div>
+            <div class="header-content">
+                <div class="user-minimal">
+                    <span id="banner-role" class="role-badge">User</span>
+                    <h1 id="banner-name">Guest</h1>
+                    <span id="banner-id" class="en-num" style="color:rgba(255,255,255,0.8); font-family:'Roboto',monospace; font-size:12px;">ID: --</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="main-content">
+            <div id="page-home" class="page-section">
+                <div id="manager-shortcuts" class="hidden" style="margin: 0 15px 15px 15px;">
+                    <div style="display:flex; gap:10px;">
+                        <button onclick="nav('reports', null)" class="btn-sm btn-main" style="flex:1; background: #fff; color:var(--primary); border:1px solid var(--border); box-shadow:none;"><i class="fa-solid fa-chart-pie"></i> التقارير</button>
+                        <button onclick="nav('admin-settings', null)" id="btn-admin-panel" class="hidden btn-sm btn-main" style="flex:1; background: #fff; color:var(--gold); border:1px solid var(--border); box-shadow:none;"><i class="fa-solid fa-sliders"></i> لوحة الإدارة</button>
+                    </div>
+                </div>
+                
+                <div id="staff-shortcuts" class="hidden" style="margin: 0 15px 15px 15px;">
+                    <button id="btn-inventory-home" onclick="nav('inventory', null)" class="btn-sm btn-main" style="width:100%; background: #fff; color:var(--primary); border:1px solid var(--border); box-shadow:none;"><i class="fa-solid fa-boxes-stacked"></i> الدخول لجرد العهدة</button>
+                </div>
+
+                <div class="tabs-container">
+                    <button class="tab-btn active" onclick="switchTab('active', this)">المهام الجارية</button>
+                    <button class="tab-btn" onclick="switchTab('history', this)">الأرشيف</button>
+                    <button class="tab-btn" onclick="switchTab('trash', this)" style="color:var(--error);">المحذوفات</button>
+                </div>
+                <div id="requests-feed" style="padding-bottom:100px;"></div>
+            </div>
+            
+            <div id="page-create" class="page-section hidden">
+                <div class="glass-card" style="margin-top:0;">
+                    <h3 style="margin:0 0 20px; font-weight:800; color:var(--primary-dark); border-right:4px solid var(--primary); padding-right:15px; font-size:20px;">بلاغ جديد</h3>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:15px;">
+                        <div class="input-group"><label>التاريخ</label><div class="date-wrapper"><input type="date" id="req-date" class="en-num"></div></div>
+                        <div class="input-group"><label>الوقت</label><div class="time-wrapper"><input type="time" id="req-time" class="en-num"></div></div>
+                    </div>
+                    <div class="input-group">
+                        <label>نوع العطل</label>
+                        <select id="req-type">
+                            <option value="">جاري التحميل...</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>الأهمية</label>
+                        <div class="priority-grid">
+                            <label class="prio-label" style="flex:1"><input type="radio" name="prio" value="low" class="prio-radio" checked><div class="prio-card p-low"><i class="fa-regular fa-face-smile"></i><span>عادي</span></div></label>
+                            <label class="prio-label" style="flex:1"><input type="radio" name="prio" value="medium" class="prio-radio"><div class="prio-card p-med"><i class="fa-regular fa-face-meh"></i><span>متوسط</span></div></label>
+                            <label class="prio-label" style="flex:1"><input type="radio" name="prio" value="high" class="prio-radio"><div class="prio-card p-high"><i class="fa-solid fa-fire"></i><span>عاجل</span></div></label>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>الموقع</label>
+                        <select id="req-faculty" style="margin-bottom:12px;">
+                            <option value="">اختر المبنى/الكلية...</option>
+                        </select>
+                        <select id="req-floor" style="margin-bottom:12px;">
+                             <option value="">اختر الدور...</option>
+                        </select>
+                        <input type="text" id="req-room" class="en-num" placeholder="رقم الغرفة / القاعة">
+                    </div>
+
+                    <div class="input-group"><label>وصف البلاغ</label><textarea id="req-desc" rows="4" placeholder="تفاصيل المشكلة..."></textarea></div>
+                    
+                    <div style="display:flex; gap:10px; margin-bottom:20px;">
+                        <div style="flex:1; background:var(--surface-light); padding:20px; border-radius:16px; border:2px dashed var(--border); text-align:center; cursor:pointer;" onclick="document.getElementById('req-files').click()">
+                            <i class="fa-solid fa-cloud-arrow-up fa-2x" style="color:var(--text-muted); margin-bottom:10px;"></i>
+                            <p style="font-size:12px; color:var(--text-muted); margin:0;">صور / فيديو</p>
+                            <input type="file" id="req-files" hidden multiple accept="image/*,video/*" onchange="handleFiles(this)">
+                        </div>
+                        
+                        <div style="flex:1; background:var(--surface-light); padding:20px; border-radius:16px; border:2px dashed var(--border); text-align:center; cursor:pointer;" onclick="document.getElementById('req-camera').click()">
+                            <i class="fa-solid fa-camera fa-2x" style="color:var(--primary); margin-bottom:10px;"></i>
+                            <p style="font-size:12px; color:var(--text-muted); margin:0;">كاميرا</p>
+                            <input type="file" id="req-camera" hidden accept="image/*" capture="environment" onchange="handleFiles(this)">
+                        </div>
+
+                        <div id="mic-trigger" class="mic-btn" onclick="toggleRecording()">
+                            <i class="fa-solid fa-microphone"></i>
+                        </div>
+                    </div>
+                    
+                    <div id="preview-grid" class="media-grid" style="margin-bottom:20px;"></div>
+                    <button onclick="openSupModal()" class="btn-main">التالي: اختيار المشرف <i class="fa-solid fa-arrow-left"></i></button>
+                </div>
+            </div>
+
+            <div id="page-admin-settings" class="page-section hidden">
+                <div class="glass-card">
+                    <h3 style="margin-bottom:20px; color:var(--gold);"><i class="fa-solid fa-sliders"></i> لوحة إدارة النظام</h3>
+                    <p style="color:var(--text-muted); font-size:12px; margin-bottom:25px;">إضافة وحذف البيانات الأساسية للنظام</p>
+                    <div style="margin-bottom:30px;">
+                        <h4 style="font-size:14px; margin-bottom:10px;">🛠️ التخصصات (أنواع الأعطال)</h4>
+                        <div style="display:flex; gap:10px; margin-bottom:10px;">
+                            <input type="text" id="new-spec-input" placeholder="اسم التخصص الجديد...">
+                            <button onclick="addSystemData('specialties')" class="btn-sm btn-main" style="width:auto;"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                        <div id="admin-specs-list" style="max-height:200px; overflow-y:auto;"></div>
+                    </div>
+                    <hr style="border:0; border-top:1px dashed var(--border); margin:20px 0;">
+                    <div style="margin-bottom:30px;">
+                        <h4 style="font-size:14px; margin-bottom:10px;">🏢 الكليات والمباني</h4>
+                        <div style="display:flex; gap:10px; margin-bottom:10px;">
+                            <input type="text" id="new-loc-input" placeholder="اسم المبنى الجديد...">
+                            <button onclick="addSystemData('locations')" class="btn-sm btn-main" style="width:auto;"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                        <div id="admin-locs-list" style="max-height:200px; overflow-y:auto;"></div>
+                    </div>
+                    <hr style="border:0; border-top:1px dashed var(--border); margin:20px 0;">
+                    <div>
+                        <h4 style="font-size:14px; margin-bottom:10px;">📶 الأدوار</h4>
+                        <div style="display:flex; gap:10px; margin-bottom:10px;">
+                            <input type="text" id="new-floor-input" placeholder="اسم الدور (مثال: الدور الأول)...">
+                            <button onclick="addSystemData('floors')" class="btn-sm btn-main" style="width:auto;"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                        <div id="admin-floors-list" style="max-height:200px; overflow-y:auto;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-inventory" class="page-section hidden">
+                <div class="glass-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h3 style="margin:0;"><i class="fa-solid fa-boxes-stacked" style="color:var(--primary);"></i> جرد العهدة</h3>
+                        <button onclick="openSendReportModal()" class="btn-sm btn-main" style="width:auto; background:var(--gold);">إرسال تقرير للمدير <i class="fa-regular fa-paper-plane"></i></button>
+                    </div>
+                    <div class="inventory-search">
+                         <input type="text" id="inv-search" placeholder="بحث عن صنف..." style="flex:2;">
+                         <select id="inv-filter" style="flex:1;">
+                             <option value="all">الكل</option>
+                             <option value="low">رصيد منخفض</option>
+                         </select>
+                    </div>
+                    <div style="background:var(--surface-light); padding:15px; border-radius:12px; margin-bottom:20px; border:1px dashed var(--border);">
+                        <p style="font-size:12px; font-weight:bold; margin-bottom:10px;">إضافة صنف جديد:</p>
+                        <div class="inv-meta-grid">
+                            <select id="inv-faculty" style="font-size:11px; padding:8px;">
+                                <option value="">المبنى/الكلية...</option>
+                            </select>
+                            <select id="inv-floor" style="font-size:11px; padding:8px;">
+                                <option value="">الدور...</option>
+                            </select>
+                            <input type="text" id="inv-room" class="en-num" placeholder="رقم الغرفة" style="font-size:11px; padding:8px;">
+                        </div>
+                        <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:5px;">
+                            <input type="text" id="inv-name" placeholder="اسم الجهاز/الأداة" style="font-size:12px; padding:8px;">
+                            <input type="number" id="inv-total" class="en-num" placeholder="إجمالي" style="font-size:12px; padding:8px;">
+                            <input type="number" id="inv-current" class="en-num" placeholder="موجود" style="font-size:12px; padding:8px;">
+                            <button onclick="addInventoryItem()" class="btn-sm btn-main" style="width:auto;"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="modern-table-container">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th>الصنف & المكان</th>
+                                    <th>الإجمالي</th>
+                                    <th>الموجود</th>
+                                    <th>بواسطة</th>
+                                    <th>حذف</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-reports" class="page-section hidden">
+                <div class="glass-card" style="padding-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h3 style="margin:0;">📊 التقارير والإحصائيات</h3>
+                        <button onclick="exportReportsPDF()" class="btn-sm btn-ghost" style="color:var(--primary); border-color:var(--primary);"><i class="fa-solid fa-file-pdf"></i> تصدير</button>
+                    </div>
+                    <div class="date-range-container">
+                        <div class="date-input-mini">
+                            <label>من:</label>
+                            <input type="date" id="report-start-date" class="en-num">
+                        </div>
+                        <div class="date-input-mini">
+                            <label>إلى:</label>
+                            <input type="date" id="report-end-date" class="en-num">
+                        </div>
+                        <button onclick="generateReports()" class="btn-sm btn-main" style="width:auto; height:38px; align-self:flex-end;">تحديث</button>
+                    </div>
+                    <div class="report-summary-grid">
+                        <div class="report-card rc-primary">
+                            <h4>إجمالي البلاغات</h4>
+                            <div class="val en-num" id="rep-total">0</div>
+                            <i class="fa-regular fa-clipboard"></i>
+                        </div>
+                        <div class="report-card rc-success">
+                            <h4>تم الإنجاز</h4>
+                            <div class="val en-num" id="rep-done" style="color:var(--success)">0</div>
+                            <i class="fa-solid fa-check-double"></i>
+                        </div>
+                        <div class="report-card rc-warning">
+                            <h4>قيد العمل</h4>
+                            <div class="val en-num" id="rep-active" style="color:var(--warning)">0</div>
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div class="report-card rc-error">
+                            <h4>مرفوض/ملغي</h4>
+                            <div class="val en-num" id="rep-rejected" style="color:var(--error)">0</div>
+                            <i class="fa-solid fa-ban"></i>
+                        </div>
+                    </div>
+                    <h4 style="margin-bottom:10px;">تحليل الحالة</h4>
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                    <h4 style="margin-bottom:10px; margin-top:25px;">تحليل الأهمية</h4>
+                    <div style="display:flex; gap:10px; margin-bottom:20px;">
+                        <div style="flex:1; background:#fef2f2; padding:10px; border-radius:12px; text-align:center; border:1px solid var(--error);">
+                            <span style="font-size:10px; color:#991b1b;">عاجل 🔥</span>
+                            <div class="en-num" style="font-weight:900; font-size:18px; color:#991b1b;" id="rep-prio-high">0</div>
+                        </div>
+                        <div style="flex:1; background:#fff7ed; padding:10px; border-radius:12px; text-align:center; border:1px solid var(--warning);">
+                            <span style="font-size:10px; color:#9a3412;">متوسط 😐</span>
+                            <div class="en-num" style="font-weight:900; font-size:18px; color:#9a3412;" id="rep-prio-med">0</div>
+                        </div>
+                        <div style="flex:1; background:#f0fdf4; padding:10px; border-radius:12px; text-align:center; border:1px solid var(--success);">
+                            <span style="font-size:10px; color:#166534;">عادي 🙂</span>
+                            <div class="en-num" style="font-weight:900; font-size:18px; color:#166534;" id="rep-prio-low">0</div>
+                        </div>
+                    </div>
+                    <h4 style="margin-bottom:10px; margin-top:25px;">أداء الفنيين</h4>
+                    <div class="modern-table-container">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th>الفني</th>
+                                    <th>المكلفة</th>
+                                    <th>المنجزة</th>
+                                    <th>التقييم</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tech-performance-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-albayan" class="page-section hidden">
+                <div class="glass-card" style="border-top:3px solid var(--primary); margin-bottom:15px; padding-bottom:15px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3><i class="fa-solid fa-bullhorn" style="color:var(--primary);"></i> البيان</h3>
+                        <span style="font-size:11px; color:var(--text-muted);">أخبار وتعميمات</span>
+                    </div>
+                </div>
+                <div id="create-post-box" class="glass-card hidden" style="margin-top:0;">
+                    <textarea id="new-post-content" rows="3" placeholder="اكتب منشوراً جديداً..." style="margin-bottom:10px;"></textarea>
+                    <button onclick="createPost()" class="btn-main btn-sm">نشر <i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+                <div id="albayan-feed" style="padding-bottom:100px;">
+                    <div style="text-align:center; padding:20px; color:var(--text-muted);">جاري تحميل المنشورات...</div>
+                </div>
+            </div>
+
+            <div id="page-team" class="page-section hidden">
+                <div class="glass-card" style="border-top: 3px solid var(--gold);">
+                    <h3 style="margin-bottom:20px;">فريق العمل</h3>
+                    <div style="display:flex; gap:10px; margin-bottom:20px;">
+                        <input type="text" id="search-query" class="en-num" placeholder="بحث بالـ ID ..." style="margin:0;">
+                        <button onclick="searchUser()" class="btn-main" style="width:auto; margin:0;"><i class="fa-solid fa-search"></i></button>
+                    </div>
+                    <div id="search-results" class="hidden" style="margin-bottom:20px;"></div>
+                    <div id="friend-reqs" class="hidden" style="background:#fff7ed; padding:15px; border-radius:15px; margin-bottom:20px; border:1px solid var(--gold);">
+                        <h5 style="margin:0 0 10px; color:var(--gold);">طلبات صداقة جديدة:</h5>
+                        <div id="reqs-list"></div>
+                    </div>
+                    <h5 style="color:var(--text-muted);">الأصدقاء:</h5>
+                    <div id="team-list"></div>
+                </div>
+            </div>
+
+            <div id="page-profile" class="page-section hidden">
+                <div class="glass-card" style="margin-top:20px;">
+                    <div style="text-align:center;">
+                        <div class="user-avatar-container" style="margin: 0 auto 25px;">
+                            <img id="edit-current-pic" src="">
+                            <div id="edit-frame-overlay" class="frame-overlay"></div>
+                            <div onclick="document.getElementById('edit-profile-file').click()" style="position:absolute; bottom:-5px; right:-5px; background:var(--primary); width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:2px solid #fff; z-index:3;"><i class="fa-solid fa-camera" style="color:white; font-size:14px;"></i></div>
+                        </div>
+                        <input type="file" id="edit-profile-file" hidden accept="image/*" onchange="previewProfilePic(this)">
+                        
+                        <div style="margin-bottom:20px;">
+                             <p style="font-size:12px; font-weight:bold;">اختر إطار للصورة:</p>
+                             <div class="frame-grid">
+                                 <div class="frame-option f-none selected" onclick="selectFrame(this, '')">بدون</div>
+                                 <div class="frame-option f-gold" onclick="selectFrame(this, 'f-gold')"></div>
+                                 <div class="frame-option f-blue" onclick="selectFrame(this, 'f-blue')"></div>
+                                 <div class="frame-option f-grad" onclick="selectFrame(this, 'f-grad')"><div class="f-grad-in"></div></div>
+                             </div>
+                        </div>
+
+                        <div style="font-family:monospace; background:var(--surface-light); display:inline-block; padding:10px 25px; border-radius:30px; margin-bottom:30px; color:var(--primary-dark); border:1px solid var(--border);" onclick="copyId()">ID: <span id="edit-id-display" class="en-num">--</span> <i class="fa-regular fa-copy"></i></div>
+                        <div style="text-align:right;">
+                            <div class="input-group"><label>الاسم الكامل</label><input type="text" id="edit-name"></div>
+                            <div class="input-group"><label>النوع</label><select id="edit-gender"><option value="male">ذكر</option><option value="female">أنثى</option></select></div>
+                            <div class="input-group"><label>رقم الهاتف</label><input type="tel" id="edit-phone" class="en-num"></div>
+                            <div class="input-group"><label>المسمى الوظيفي</label><input type="text" id="edit-job"></div>
+                            <div class="input-group"><label>مقر العمل</label><input type="text" id="edit-loc"></div>
+                        </div>
+                        <button onclick="saveProfile()" class="btn-main" id="save-profile-btn" style="margin-top:20px;">حفظ التعديلات</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-settings" class="page-section hidden">
+                <div class="glass-card">
+                    <h3 style="margin-bottom:25px;">الإعدادات</h3>
+                    <div class="input-group">
+                        <label>الإشعارات</label>
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface-light); padding:15px; border-radius:16px; border:1px solid var(--border);">
+                            <span>تفعيل التنبيهات الصوتية</span>
+                            <button onclick="reqNotifyPerm()" class="btn-sm btn-main" style="width:auto;">تفعيل</button>
+                        </div>
+                    </div>
+                    
+                    <div id="settings-manager-area" class="hidden">
+                        <div class="settings-btn-grid">
+                            <div class="settings-card-btn" onclick="nav('reports', null)">
+                                <i class="fa-solid fa-chart-line"></i>
+                                <span>التقارير</span>
+                            </div>
+                            <div class="settings-card-btn" onclick="nav('admin-settings', null)">
+                                <i class="fa-solid fa-cogs"></i>
+                                <span>إدارة النظام</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="settings-staff-area" class="hidden" style="margin-top:15px;">
+                         <div class="settings-btn-grid">
+                             <div class="settings-card-btn" onclick="nav('inventory', null)">
+                                 <i class="fa-solid fa-boxes-stacked"></i>
+                                 <span>جرد العهدة</span>
+                             </div>
+                          </div>
+                    </div>
+
+                    <button onclick="document.getElementById('logout-modal').classList.remove('hidden')" class="btn-main btn-danger" style="margin-top:20px;">تسجيل خروج</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="nav('home', this)"><i class="fa-solid fa-list-check"></i>المهام</div>
+            <div id="nav-create-btn" class="nav-add-btn" onclick="nav('create', null)"><i class="fa-solid fa-plus"></i></div>
+            <div class="nav-item" onclick="nav('team', this)"><i class="fa-solid fa-users"></i>الفريق</div>
+            <div class="nav-item" onclick="nav('albayan', this)">
+                <i class="fa-solid fa-bullhorn"></i>البيان
+                <div id="feed-badge" class="nav-badge"></div>
+            </div>
+            <div class="nav-item" onclick="nav('profile', this)"><i class="fa-solid fa-user"></i>حسابي</div>
+            <div class="nav-item" onclick="nav('settings', this)"><i class="fa-solid fa-gear"></i></div>
+        </div>
+    </div>
+    
+    <div id="media-viewer-modal" class="modal-overlay hidden" style="background: rgba(0,0,0,0.95); z-index:2005;">
+        <div class="media-close-btn" onclick="closeModal('media-viewer-modal')"><i class="fa-solid fa-xmark"></i></div>
+        <div class="modal-content" style="background:transparent; box-shadow:none; border:none; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+            <div id="media-viewer-content" class="full-media-container" style="width:100%;"></div>
+        </div>
+    </div>
+
+    <div id="send-report-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="close-btn" onclick="closeModal('send-report-modal')"><i class="fa-solid fa-xmark"></i></div>
+            <h3 style="margin-bottom:20px; border-right:4px solid var(--gold); padding-right:15px; color:var(--text);">إرسال التقرير</h3>
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:15px;">اختر المدير لإرسال تقرير العهدة الخاص بك:</p>
+            <div id="manager-select-list" style="max-height:200px; overflow-y:auto; margin-bottom:20px; display:grid; gap:10px;"></div>
+            <button onclick="confirmSendReport()" id="confirm-send-rep-btn" class="btn-main" disabled>إرسال الآن <i class="fa-regular fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <div id="seen-users-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="close-btn" onclick="closeModal('seen-users-modal')"><i class="fa-solid fa-xmark"></i></div>
+            <h3 style="margin-bottom:15px; color:var(--text);">المشاهدون <i class="fa-solid fa-eye" style="color:var(--primary);"></i></h3>
+            <div id="seen-users-list" style="max-height:300px; overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <div id="sup-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="close-btn" onclick="closeModal('sup-modal')"><i class="fa-solid fa-xmark"></i></div>
+            <h3 style="margin-bottom:20px; border-right:4px solid var(--gold); padding-right:15px; color:var(--text);">اختر المشرف</h3>
+            <div id="sup-list" style="max-height:300px; overflow-y:auto; margin-bottom:20px;"></div>
+            <button onclick="sendRequestFinal()" class="btn-main" id="confirm-send-btn">إرسال البلاغ <i class="fa-regular fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <div id="action-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="close-btn" onclick="closeModal('action-modal')"><i class="fa-solid fa-xmark"></i></div>
+            <h3 id="act-title" style="margin-bottom:20px; color:var(--text);">إجراء</h3>
+            <textarea id="act-comment" rows="4" placeholder="اكتب ملاحظات..."></textarea>
+            
+            <div id="eng-select-area" class="hidden" style="margin-top:20px;">
+                <p style="font-size:13px; font-weight:700; color:var(--text-muted); margin-bottom:12px;">اختر المهندس المسؤول:</p>
+                <div id="eng-list-action" class="tech-select-grid" style="max-height:200px; overflow-y:auto; padding:5px;"></div>
+            </div>
+
+            <div id="tech-select-area" class="hidden" style="margin-top:20px;">
+                <p style="font-size:13px; font-weight:700; color:var(--text-muted); margin-bottom:12px;">تعيين الفني:</p>
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <label style="flex:1; cursor:pointer;"><input type="radio" name="tech-type" value="internal" checked onchange="toggleTechType(this.value)"> <span style="font-size:12px;">فني مسجل</span></label>
+                    <label style="flex:1; cursor:pointer;"><input type="radio" name="tech-type" value="external" onchange="toggleTechType(this.value)"> <span style="font-size:12px;">فني تعاقد (خارجي)</span></label>
+                </div>
+                <div id="tech-list-action" class="tech-select-grid" style="max-height:200px; overflow-y:auto; padding:5px;"></div>
+                <div id="ext-tech-form" class="ext-tech-form hidden">
+                    <div class="input-group"><input type="text" id="ext-name" placeholder="اسم الفني"></div>
+                    <div class="input-group"><input type="tel" id="ext-phone" class="en-num" placeholder="رقم الهاتف"></div>
+                    <div class="input-group"><input type="text" id="ext-company" placeholder="الشركة / الجهة"></div>
+                    <div class="input-group"><input type="number" id="ext-cost" class="en-num" placeholder="التكلفة (اختياري)"></div>
+                </div>
+            </div>
+            
+            <div id="tech-finish-form" class="hidden">
+                 <div class="tech-cost-form">
+                     <p style="font-size:13px; font-weight:bold; color:var(--gold); margin-bottom:10px;">💵 التكلفة والأدوات المستخدمة</p>
+                     <div id="cost-items-container"></div>
+                     <div class="add-item-btn" onclick="addCostItemRow()">+ إضافة مادة/أداة</div>
+                 </div>
+            </div>
+
+            <button onclick="submitAction()" id="act-submit-btn" class="btn-main" style="margin-top:20px;">تنفيذ</button>
+        </div>
+    </div>
+
+    <div id="request-details-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width:550px;">
+            <div class="close-btn" onclick="closeModal('request-details-modal')"><i class="fa-solid fa-xmark"></i></div>
+            <h3 style="text-align:center; color:var(--primary); margin-bottom:25px;">تفاصيل البلاغ</h3>
+            <div id="req-details-content"></div>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="modal-overlay hidden">
+         <div class="modal-content" style="text-align:center; max-width:320px;">
+             <h3 style="margin-bottom:15px;">تأكيد</h3>
+             <p id="confirm-modal-msg" style="color:#666; margin-bottom:20px;"></p>
+             <div style="display:flex; gap:10px;">
+                 <button id="confirm-yes-btn" class="btn-main btn-danger">نعم</button>
+                 <button onclick="closeModal('confirm-modal')" class="btn-ghost" style="width:100%;">إلغاء</button>
+             </div>
+         </div>
+    </div>
+
+    <div id="friend-profile-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="text-align:center; z-index:2001;">
+            <div class="close-btn" onclick="closeModal('friend-profile-modal')"><i class="fa-solid fa-xmark"></i></div>
+            <img id="fp-pic" src="" style="width:100px; height:100px; border-radius:50%; margin-bottom:15px; border:4px solid var(--surface-light);">
+            <h3 id="fp-name" style="margin-bottom:5px;"></h3>
+            <p id="fp-role" style="color:var(--text-muted); font-size:14px;"></p>
+            <div id="fp-info" style="margin-top:15px; font-size:13px; color:#555;"></div>
+            <div id="fp-actions" style="margin-top:20px;"></div>
+        </div>
+    </div>
+    
+    <div id="logout-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="text-align:center;">
+            <h3 style="color:var(--text);">تأكيد الخروج؟</h3>
+            <div style="display:flex; gap:10px; margin-top:25px;">
+                <button onclick="logout()" class="btn-main btn-danger">خروج</button>
+                <button onclick="closeModal('logout-modal')" class="btn-ghost" style="width:100%;">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" style="position:fixed; top:30px; left:50%; transform:translateX(-50%); background:rgba(15, 23, 42, 0.95); color:white; padding:12px 30px; border-radius:50px; border:1px solid rgba(255,255,255,0.1); z-index:9999; display:none; font-size:13px; font-weight:bold; box-shadow:0 10px 40px rgba(0,0,0,0.5); font-family:'Cairo'; backdrop-filter:blur(5px);"></div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+<script src="script.js"></script>
+</body>
+</html>
